@@ -11,8 +11,29 @@ const createElement = (id, x1, y1, x2, y2, type) => {
   return { id, x1, y1, x2, y2, type, roughElement };
 };
 
+const useHistory = (initialState) => {
+  const [index, setIndex] = useState(0);
+  const [history, setHistory] = useState([initialState]); // [[], [{}], ...]
+
+  const setState = (action, overwrite = false) => {
+    const newState =
+      typeof action === "function" ? action(history[index]) : action;
+
+    if (overwrite) {
+      const historyCopy = [...history];
+      historyCopy[index] = newState;
+      setHistory(historyCopy);
+    } else {
+      setHistory((prevState) => [...prevState, newState]);
+      setIndex((prevState) => prevState + 1);
+    }
+  };
+
+  return [history[index], setState];
+};
+
 function App() {
-  const [elements, setElements] = useState([]);
+  const [elements, setElements] = useHistory([]);
   const [drawing, setDrawing] = useState(false);
   const [elementType, setElementType] = useState("line");
 
@@ -85,7 +106,6 @@ function App() {
 
       <canvas
         id="canvas"
-        style={{ backgroundColor: "blue" }}
         width={window.innerWidth}
         height={window.innerHeight}
         onMouseDown={handleMouseDown}
