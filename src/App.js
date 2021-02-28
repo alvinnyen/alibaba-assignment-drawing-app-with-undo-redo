@@ -3,12 +3,12 @@ import rough from "roughjs/bundled/rough.esm.js";
 
 const generator = rough.generator();
 
-const createElement = (x1, y1, x2, y2, type = "") => {
+const createElement = (id, x1, y1, x2, y2, type) => {
   const roughElement =
     type === "line"
       ? generator.line(x1, y1, x2, y2)
       : generator.rectangle(x1, y1, x2 - x1, y2 - y1);
-  return { x1, y1, x2, y2, type, roughElement };
+  return { id, x1, y1, x2, y2, type, roughElement };
 };
 
 function App() {
@@ -24,14 +24,22 @@ function App() {
     const roughCanvas = rough.canvas(canvas);
 
     elements.forEach(({ roughElement }) => roughCanvas.draw(roughElement));
-  });
+  }, [elements]);
+
+  const updateElement = (id, x1, y1, x2, y2, type) => {
+    const updatedElement = createElement(id, x1, y1, x2, y2, type);
+
+    const elementsCopy = [...elements];
+    elementsCopy[id] = updatedElement;
+    setElements(elementsCopy, true);
+  };
 
   const handleMouseDown = (event) => {
-    setDrawing(true);
-
     const { clientX, clientY } = event;
 
+    const id = elements.length;
     const element = createElement(
+      id,
       clientX,
       clientY,
       clientX,
@@ -39,19 +47,17 @@ function App() {
       elementType
     );
     setElements((prevState) => [...prevState, element]);
+    setDrawing(true);
   };
 
   const handleMouseMove = (event) => {
     if (!drawing) return;
 
     const { clientX, clientY } = event;
+
     const index = elements.length - 1;
     const { x1, y1 } = elements[index];
-    const updatedElement = createElement(x1, y1, clientX, clientY, elementType);
-
-    const elementsCopy = [...elements];
-    elementsCopy[index] = updatedElement;
-    setElements(elementsCopy);
+    updateElement(index, x1, y1, clientX, clientY, elementType);
   };
 
   const handleMouseUp = (event) => {
