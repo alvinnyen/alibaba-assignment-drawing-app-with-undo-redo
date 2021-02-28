@@ -3,8 +3,18 @@ import rough from "roughjs/bundled/rough.esm.js";
 
 const generator = rough.generator();
 
+const createElement = (x1, y1, x2, y2, type = "") => {
+  const roughElement =
+    type === "line"
+      ? generator.line(x1, y1, x2, y2)
+      : generator.rectangle(x1, y1, x2 - x1, y2 - y1);
+  return { x1, y1, x2, y2, type, roughElement };
+};
+
 function App() {
+  const [elements, setElements] = useState([]);
   const [drawing, setDrawing] = useState(false);
+  const [elementType, setElementType] = useState("line");
 
   useLayoutEffect(() => {
     const canvas = document.getElementById("canvas");
@@ -12,19 +22,36 @@ function App() {
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     const roughCanvas = rough.canvas(canvas);
-    const rect = generator.rectangle(10, 10, 100, 100);
-    roughCanvas.draw(rect);
+
+    elements.forEach(({ roughElement }) => roughCanvas.draw(roughElement));
   });
 
   const handleMouseDown = (event) => {
     setDrawing(true);
+
+    const { clientX, clientY } = event;
+
+    const element = createElement(
+      clientX,
+      clientY,
+      clientX,
+      clientY,
+      elementType
+    );
+    setElements((prevState) => [...prevState, element]);
   };
 
   const handleMouseMove = (event) => {
     if (!drawing) return;
 
     const { clientX, clientY } = event;
-    console.log(clientX, clientY);
+    const index = elements.length - 1;
+    const { x1, y1 } = elements[index];
+    const updatedElement = createElement(x1, y1, clientX, clientY, elementType);
+
+    const elementsCopy = [...elements];
+    elementsCopy[index] = updatedElement;
+    setElements(elementsCopy);
   };
 
   const handleMouseUp = (event) => {
@@ -33,6 +60,23 @@ function App() {
 
   return (
     <div className="App">
+      <div style={{ position: "fixed" }}>
+        <input
+          type="radio"
+          id="line"
+          checked={elementType === "line"}
+          onChange={() => setElementType("line")}
+        />
+        <label htmlFor="line">Line</label>
+        <input
+          type="radio"
+          id="rectangle"
+          checked={elementType === "rectangle"}
+          onChange={() => setElementType("rectangle")}
+        />
+        <label htmlFor="rectangle">Rectangle</label>
+      </div>
+
       <canvas
         id="canvas"
         style={{ backgroundColor: "blue" }}
