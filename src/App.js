@@ -1,12 +1,16 @@
 import { useLayoutEffect } from "react";
+import rough from "roughjs/bundled/rough.esm.js";
+
+const generator = rough.generator();
 
 function App() {
   useLayoutEffect(() => {
     const canvas = document.getElementById("canvas");
     const context = canvas.getContext("2d");
 
-    context.fillStyle = "green";
-    context.fillRect(10, 10, 150, 100);
+    const roughCanvas = rough.canvas(canvas);
+    const rect = generator.rectangle(10, 10, 100, 100);
+    roughCanvas.draw(rect);
   });
 
   return (
