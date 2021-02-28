@@ -29,11 +29,15 @@ const useHistory = (initialState) => {
     }
   };
 
-  return [history[index], setState];
+  const undo = () => index > 0 && setIndex((prevState) => prevState - 1);
+  const redo = () =>
+    index < history.length - 1 && setIndex((prevState) => prevState + 1);
+
+  return [history[index], setState, undo, redo];
 };
 
 function App() {
-  const [elements, setElements] = useHistory([]);
+  const [elements, setElements, undo, redo] = useHistory([]);
   const [drawing, setDrawing] = useState(false);
   const [elementType, setElementType] = useState("line");
 
@@ -103,7 +107,10 @@ function App() {
         />
         <label htmlFor="rectangle">Rectangle</label>
       </div>
-
+      <div style={{ position: "fixed", bottom: 0, padding: 10 }}>
+        <button onClick={undo}>Undo</button>
+        <button onClick={redo}>Redo</button>
+      </div>
       <canvas
         id="canvas"
         width={window.innerWidth}
